@@ -1,0 +1,134 @@
+<div class="card position-relative">
+  <app-card-spinner [isLoading]="isLoading"></app-card-spinner>
+
+  <div class="card-header">
+    <div class="title-container border-bottom border-info d-inline-flex">
+      ASSETS ({{ assetData?.content?.length }})
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <!-- this might not be the most dynamic/best way to set table headers, 
+            but to do that the api should also send a Name property inside 
+            some kind of "tableStructure" property 
+            ('hardwareErrors' should have a corresponding 'Hardware Errors' for that).
+            could have also mapped these on the client, but that's not dynamic as well.
+            so the component's user will have to send an array of these labels -->
+            <!-- TODO: this array should change to an object that contains the id for the label, the label and weather it should have a sorting button or not -->
+            <th
+              *ngFor="let tableHeader of tableHeaders"
+              scope="col"
+              class=" justify-content-between"
+            >
+              <div>{{ tableHeader }}</div>
+              <div class="sort-button-container" (click)="onSortClick()">
+                <i class="fa fa-filter"></i>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of assetData?.content">
+            <td>{{ row.name }}</td>
+            <td>{{ row.os }}</td>
+            <td>
+              <ng-container [ngSwitch]="row.severity">
+                <ng-container *ngSwitchCase="0">
+                  <div class="badge w-100 text-center badge-success">
+                    LEGIT
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchCase="1">
+                  <div class="badge w-100 text-center badge-light">
+                    LOW
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchCase="2">
+                  <div class="badge w-100 text-center badge-dark">
+                    MEDIUM
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchCase="3">
+                  <div class="badge w-100 text-center badge-warning">
+                    HIGH
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchCase="4">
+                  <div class="badge w-100 text-center badge-danger">
+                    CRITICAL
+                  </div>
+                </ng-container>
+              </ng-container>
+            </td>
+            <td>{{ row.hardwareErrors }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.users }}</td>
+            <td>
+              <div *ngFor="let tag of row.tags">
+                <app-dismissible-badge [content]="tag"></app-dismissible-badge>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="d-flex justify-content-between align-items-center">
+      <!-- this dropdown is ugly, if ill have the time ill change it to something like ng-select or do a custom directive -->
+      <div>
+        Rows per page <span *ngIf="isLoading">{{ itemsPerPage }}</span>
+        <span dropdown *ngIf="!isLoading">
+          <a
+            href
+            id="basic-link"
+            dropdownToggle
+            (click)="(false)"
+            aria-controls="basic-link-dropdown"
+            >{{ assetData?.size }}</a
+          >
+          <ul
+            id="basic-link-dropdown"
+            *dropdownMenu
+            class="dropdown-menu"
+            role="menu"
+            aria-labelledby="basic-link"
+          >
+            <li *ngFor="let choice of itemPerPageOptions">
+              <a class="dropdown-item" (click)="onRowsPerPageSelect(choice)">{{
+                choice
+              }}</a>
+            </li>
+          </ul>
+        </span>
+      </div>
+
+      <div>
+        {{
+          (assetData?.pageable?.pageNumber !== 0
+            ? assetData?.pageable?.pageNumber
+            : 1) * assetData?.pageable?.pageSize
+        }}
+        -
+        {{
+          (assetData?.pageable?.pageNumber !== 0
+            ? assetData?.pageable?.pageNumber
+            : 1) *
+            assetData?.pageable?.pageSize +
+            assetData?.pageable?.pageSize
+        }}
+        of {{ assetData?.totalElements }}
+      </div>
+
+      <pagination
+        [maxSize]="3"
+        (pageChanged)="onPageClick($event)"
+        [totalItems]="assetData?.totalElements"
+        [itemsPerPage]="itemsPerPage"
+      ></pagination>
+    </div>
+  </div>
+</div>
